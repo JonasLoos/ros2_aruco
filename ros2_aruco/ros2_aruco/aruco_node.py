@@ -60,6 +60,8 @@ class ArucoNode(rclpy.node.Node):
         info_topic = self.get_parameter("camera_info_topic").get_parameter_value().string_value
         self.camera_frame = self.get_parameter("camera_frame").get_parameter_value().string_value
 
+        print(f'scanning topics `{image_topic}` and `{info_topic}` for `{dictionary_id_name}` aruco tags with a marker size of `{self.marker_size}`')
+
         # Make sure we have a valid dictionary id:
         try:
             dictionary_id = cv2.aruco.__getattribute__(dictionary_id_name)
@@ -88,8 +90,9 @@ class ArucoNode(rclpy.node.Node):
         self.intrinsic_mat = None
         self.distortion = None
 
-        self.aruco_dictionary = cv2.aruco.Dictionary_get(dictionary_id)
-        self.aruco_parameters = cv2.aruco.DetectorParameters_create()
+        # self.aruco_dictionary = cv2.aruco.getPredefinedDictionary(dictionary_id)
+        # self.aruco_parameters = cv2.aruco.DetectorParameters(self.aruco_dictionary)
+        self.aruco_detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(dictionary_id))
         self.bridge = CvBridge()
 
     def info_callback(self, info_msg):
@@ -120,10 +123,9 @@ class ArucoNode(rclpy.node.Node):
         markers.header.stamp = img_msg.header.stamp
         pose_array.header.stamp = img_msg.header.stamp
 
-        corners, marker_ids, rejected = cv2.aruco.detectMarkers(cv_image,
-                                                                self.aruco_dictionary,
-                                                                parameters=self.aruco_parameters)
+        corners, marker_ids, rejected = self.aruco_detector.detectMarkers(cv_image)
         if marker_ids is not None:
+            print(f'found {len(marker_ids)} markers')
 
             if cv2.__version__ > '4.0.0':
                 rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners,
@@ -154,6 +156,8 @@ class ArucoNode(rclpy.node.Node):
 
             self.poses_pub.publish(pose_array)
             self.markers_pub.publish(markers)
+        else:
+            print('no markers found')
 
 
 def main():
