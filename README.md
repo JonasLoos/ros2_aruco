@@ -12,6 +12,10 @@ pip install opencv-contrib-python # or pip3
 
 This node locates Aruco AR markers in images and publishes their ids and poses.
 
+```
+ros2 run ros2_aruco aruco_node
+```
+
 Subscriptions:
 * `/camera/image_raw` (`sensor_msgs.msg.Image`)
 * `/camera/camera_info` (`sensor_msgs.msg.CameraInfo`)
