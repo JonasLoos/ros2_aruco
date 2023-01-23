@@ -109,6 +109,7 @@ class ArucoNode(rclpy.node.Node):
             return
 
         cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding='mono8')
+        aruco_image = cv_image.copy()
         markers = ArucoMarkers()
         pose_array = PoseArray()
         if self.camera_frame is None:
@@ -151,11 +152,24 @@ class ArucoNode(rclpy.node.Node):
                 markers.poses.append(pose)
                 markers.marker_ids.append(marker_id[0])
 
+                # get corner positions
+                (topLeft, topRight, bottomRight, bottomLeft) = corners[i].reshape((4, 2))
+                topRight = (int(topRight[0]), int(topRight[1]))
+                bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+                bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+                topLeft = (int(topLeft[0]), int(topLeft[1]))
+                # draw lines around the marker and display the marker id
+                cv2.line(aruco_image, topLeft, topRight, (0, 255, 0), 2)
+                cv2.line(aruco_image, topRight, bottomRight, (0, 255, 0), 2)
+                cv2.line(aruco_image, bottomRight, bottomLeft, (0, 255, 0), 2)
+                cv2.line(aruco_image, bottomLeft, topLeft, (0, 255, 0), 2)                    
+                cv2.putText(aruco_image, str(id),(topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0), 2)
+
             self.poses_pub.publish(pose_array)
             self.markers_pub.publish(markers)
         else:
             self.get_logger().info(f'no markers found')
-        self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image))
+        self.image_pub.publish(self.bridge.cv2_to_imgmsg(aruco_image))
 
 
 def main():
