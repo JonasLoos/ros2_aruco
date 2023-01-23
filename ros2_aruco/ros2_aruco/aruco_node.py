@@ -102,8 +102,15 @@ class ArucoNode(rclpy.node.Node):
         self.info_msg = info_msg
         self.intrinsic_mat = np.reshape(np.array(self.info_msg.k), (3, 3))
         self.distortion = np.array(self.info_msg.d)
+        if self.camera_frame is None:
+            self.camera_frame = info_msg.header.frame_id
+            if not self.camera_frame:
+                self.get_logger().warm(f'`frame_id` from `{self.info_topic}` is empty. You can set it manually using the `camera_frame` argument.')
+
         # Assume that camera parameters will remain the same...
         self.destroy_subscription(self.info_sub)
+
+        if 
 
     def image_callback(self, img_msg):
 
@@ -115,12 +122,8 @@ class ArucoNode(rclpy.node.Node):
         aruco_image = cv2.cvtColor(cv_image,cv2.COLOR_GRAY2RGB)
         markers = ArucoMarkers()
         pose_array = PoseArray()
-        if self.camera_frame is None:
-            markers.header.frame_id = self.info_msg.header.frame_id
-            pose_array.header.frame_id = self.info_msg.header.frame_id
-        else:
-            markers.header.frame_id = self.camera_frame
-            pose_array.header.frame_id = self.camera_frame
+        markers.header.frame_id = self.camera_frame
+        pose_array.header.frame_id = self.camera_frame
 
         markers.header.stamp = img_msg.header.stamp
         pose_array.header.stamp = img_msg.header.stamp
@@ -170,7 +173,7 @@ class ArucoNode(rclpy.node.Node):
             self.poses_pub.publish(pose_array)
             self.markers_pub.publish(markers)
         
-        # log found markers
+        # log found markers (only if things change)
         log_msg = f'found markers: {None if marker_ids is None else [j for i in marker_ids for j in i]}'
         if log_msg != self.log_msg_old:
             self.get_logger().info(log_msg)
