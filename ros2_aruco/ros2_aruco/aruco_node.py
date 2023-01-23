@@ -60,7 +60,7 @@ class ArucoNode(rclpy.node.Node):
         info_topic = self.get_parameter("camera_info_topic").get_parameter_value().string_value
         self.camera_frame = self.get_parameter("camera_frame").get_parameter_value().string_value
 
-        print(f'scanning topics `{image_topic}` and `{info_topic}` for `{dictionary_id_name}` aruco tags with a marker size of `{self.marker_size}`')
+        self.get_logger().info(f'scanning topics `{image_topic}` and `{info_topic}` for `{dictionary_id_name}` aruco tags with a marker size of `{self.marker_size}`')
 
         # Make sure we have a valid dictionary id:
         try:
@@ -86,16 +86,12 @@ class ArucoNode(rclpy.node.Node):
         self.markers_pub = self.create_publisher(ArucoMarkers, 'aruco_markers', 10)
         self.image_pub = self.create_publisher(Image, 'aruco_image', 10)
 
-        # setup bridge to convert from cv images to ros2 topic images
-        self.br = CvBridge()
-
         # Set up fields for camera parameters
         self.info_msg = None
         self.intrinsic_mat = None
         self.distortion = None
 
-        # self.aruco_dictionary = cv2.aruco.getPredefinedDictionary(dictionary_id)
-        # self.aruco_parameters = cv2.aruco.DetectorParameters(self.aruco_dictionary)
+        # setup aruco detector and cv-ros image converter bridge
         self.aruco_detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(dictionary_id))
         self.bridge = CvBridge()
 
@@ -112,8 +108,7 @@ class ArucoNode(rclpy.node.Node):
             self.get_logger().warn("No camera info has been received!")
             return
 
-        cv_image = self.bridge.imgmsg_to_cv2(img_msg,
-                                             desired_encoding='mono8')
+        cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding='mono8')
         markers = ArucoMarkers()
         pose_array = PoseArray()
         if self.camera_frame is None:
@@ -122,8 +117,7 @@ class ArucoNode(rclpy.node.Node):
         else:
             markers.header.frame_id = self.camera_frame
             pose_array.header.frame_id = self.camera_frame
-            
-            
+
         markers.header.stamp = img_msg.header.stamp
         pose_array.header.stamp = img_msg.header.stamp
 
@@ -161,7 +155,7 @@ class ArucoNode(rclpy.node.Node):
             self.markers_pub.publish(markers)
         else:
             self.get_logger().info(f'no markers found')
-        self.image_pub.publish(self.br.cv2_to_imgmsg(cv_image))
+        self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image))
 
 
 def main():
