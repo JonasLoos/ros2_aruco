@@ -27,6 +27,7 @@ Version: 10/26/2020
 
 """
 
+from datetime import datetime
 import rclpy
 import rclpy.node
 from rclpy.qos import qos_profile_sensor_data
@@ -125,7 +126,7 @@ class ArucoNode(rclpy.node.Node):
 
         corners, marker_ids, rejected = self.aruco_detector.detectMarkers(cv_image)
         if marker_ids is not None:
-            print(f'found {len(marker_ids)} markers')
+            print(f'[{datetime.now().strftime("%H:%M:%S")}] found {len(marker_ids)} markers')
 
             if cv2.__version__ > '4.0.0':
                 rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners,
@@ -157,7 +158,7 @@ class ArucoNode(rclpy.node.Node):
             self.poses_pub.publish(pose_array)
             self.markers_pub.publish(markers)
         else:
-            print('no markers found')
+            print('[{datetime.now().strftime("%H:%M:%S")}] no markers found')
 
 
 def main():
