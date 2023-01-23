@@ -85,6 +85,10 @@ class ArucoNode(rclpy.node.Node):
         # Set up publishers
         self.poses_pub = self.create_publisher(PoseArray, 'aruco_poses', 10)
         self.markers_pub = self.create_publisher(ArucoMarkers, 'aruco_markers', 10)
+        self.image_pub = self.create_publisher(Image, 'aruco_image', 10)
+
+        # setup bridge to convert from cv images to ros2 topic images
+        self.br = CvBridge()
 
         # Set up fields for camera parameters
         self.info_msg = None
@@ -159,6 +163,7 @@ class ArucoNode(rclpy.node.Node):
             self.markers_pub.publish(markers)
         else:
             print('[{datetime.now().strftime("%H:%M:%S")}] no markers found')
+        self.image_pub.publish(self.br.cv2_to_imgmsg(cv_image))
 
 
 def main():
