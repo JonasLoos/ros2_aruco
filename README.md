@@ -23,6 +23,7 @@ Subscriptions:
 Published Topics:
 * `/aruco_poses` (`geometry_msgs.msg.PoseArray`) - Poses of all detected markers (suitable for rviz visualization)
 * `/aruco_markers` (`ros2_aruco_interfaces.msg.ArucoMarkers`) - Provides an array of all poses along with the corresponding marker ids
+* `/aruco_image` (`sensor_msgs.msg.Image`) - analyzed image where the detected markers are marked
 
 Parameters:
 * `marker_size` - size of the markers in meters (default .0625)
