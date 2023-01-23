@@ -110,8 +110,6 @@ class ArucoNode(rclpy.node.Node):
         # Assume that camera parameters will remain the same...
         self.destroy_subscription(self.info_sub)
 
-        if 
-
     def image_callback(self, img_msg):
 
         if self.info_msg is None:
