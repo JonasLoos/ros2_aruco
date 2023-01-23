@@ -171,7 +171,7 @@ class ArucoNode(rclpy.node.Node):
             self.markers_pub.publish(markers)
         
         # log found markers
-        log_msg = f'found markers: {list(marker_ids)}'
+        log_msg = f'found markers: {marker_ids and list(marker_ids)}'
         if log_msg != self.log_msg_old:
             self.get_logger().info(log_msg)
             self.log_msg_old = log_msg
