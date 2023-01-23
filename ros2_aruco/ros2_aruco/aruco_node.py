@@ -128,14 +128,7 @@ class ArucoNode(rclpy.node.Node):
 
         corners, marker_ids, rejected = self.aruco_detector.detectMarkers(cv_image)
         if marker_ids is not None:
-            if cv2.__version__ > '4.0.0':
-                rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners,
-                                                                      self.marker_size, self.intrinsic_mat,
-                                                                      self.distortion)
-            else:
-                rvecs, tvecs = cv2.aruco.estimatePoseSingleMarkers(corners,
-                                                                   self.marker_size, self.intrinsic_mat,
-                                                                   self.distortion)
+            rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, self.marker_size, self.intrinsic_mat, self.distortion)
             for i, marker_id in enumerate(marker_ids):
                 pose = Pose()
                 pose.position.x = tvecs[i][0][0]
