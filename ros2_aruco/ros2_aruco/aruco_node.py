@@ -95,6 +95,9 @@ class ArucoNode(rclpy.node.Node):
         self.aruco_detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(dictionary_id))
         self.bridge = CvBridge()
 
+        # init logging msg
+        self.log_msg_old = ''
+
     def info_callback(self, info_msg):
         self.info_msg = info_msg
         self.intrinsic_mat = np.reshape(np.array(self.info_msg.k), (3, 3))
@@ -167,8 +170,14 @@ class ArucoNode(rclpy.node.Node):
 
             self.poses_pub.publish(pose_array)
             self.markers_pub.publish(markers)
-        else:
-            self.get_logger().info(f'no markers found')
+        
+        # log found markers
+        log_msg = f'found markers: {marker_ids}'
+        if log_msg != self.log_msg_old:
+            self.get_logger().info(log_msg)
+            self.log_msg_old = log_msg
+
+        # publish aruco image
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(aruco_image))
 
 
