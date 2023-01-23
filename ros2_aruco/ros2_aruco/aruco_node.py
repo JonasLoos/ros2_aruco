@@ -105,7 +105,7 @@ class ArucoNode(rclpy.node.Node):
         if self.camera_frame is None:
             self.camera_frame = info_msg.header.frame_id
             if not self.camera_frame:
-                self.get_logger().warm(f'`frame_id` from `{self.info_topic}` is empty. You can set it manually using the `camera_frame` argument.')
+                self.get_logger().warn(f'`frame_id` from `{self.info_topic}` is empty. You can set it manually using the `camera_frame` argument.')
 
         # Assume that camera parameters will remain the same...
         self.destroy_subscription(self.info_sub)
