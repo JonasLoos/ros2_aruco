@@ -163,7 +163,7 @@ class ArucoNode(rclpy.node.Node):
                 cv2.line(aruco_image, topRight, bottomRight, (0, 255, 0), 2)
                 cv2.line(aruco_image, bottomRight, bottomLeft, (0, 255, 0), 2)
                 cv2.line(aruco_image, bottomLeft, topLeft, (0, 255, 0), 2)                    
-                cv2.putText(aruco_image, str(id),(topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0), 2)
+                cv2.putText(aruco_image, str(marker_id),(topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0), 2)
 
             self.poses_pub.publish(pose_array)
             self.markers_pub.publish(markers)
