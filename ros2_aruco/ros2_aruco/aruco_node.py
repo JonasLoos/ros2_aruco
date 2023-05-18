@@ -114,7 +114,13 @@ class ArucoNode(rclpy.node.Node):
 
         if self.info_msg is None:
             self.get_logger().warn("No camera info has been received!")
-            return
+            self.get_logger().info("continuing with default (zero) camera parameters")
+            self.intrinsic_mat = np.array([
+                [640,   0, 320],
+                [  0, 480, 240],
+                [  0,   0,   1],
+            ])
+            self.distortion = np.zeros((5,1))
 
         cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding='mono8')
         aruco_image = cv2.cvtColor(cv_image,cv2.COLOR_GRAY2RGB)
