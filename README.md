@@ -32,6 +32,11 @@ Parameters:
 * `camera_info_topic` - Camera info topic to subscribe to (default `/camera/camera_info`)
 * `camera_frame` - Camera optical frame to use (default to the frame id provided by the camera info message.)
 
+Example:
+```bash
+ros2 run ros2_aruco aruco_node --ros-args -p image_topic:=/camera/camera -p camera_info_topic:=/camera/camera_info
+```
+
 ## Generating Marker Images
 
 ```
