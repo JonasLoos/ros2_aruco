@@ -41,6 +41,43 @@ from geometry_msgs.msg import PoseArray, Pose
 from ros2_aruco_interfaces.msg import ArucoMarkers
 
 
+
+def get_aruco_dict(dictionary_id):
+    if dictionary_id == "DICT_ALVAR_15":
+        # List of your custom markers as binary numbers
+        markers_bin = [
+            0b1101111011101010011011101,
+            0b1101111011101011011010110,
+            0b1101111011101010111110100,
+            0b1101111011101010111001110,
+            0b1101111011101011011101100,
+            0b1101111011101010011100111,
+            0b1101111011101011111000101,
+            0b1101111011101010010111110,
+            0b1101111011101011110011100,
+            0b1101111011101010110010111,
+            0b1101111011101011010110101,
+            0b1101111011101011010001111,
+            0b1101111011101010110101101,
+            0b1101111011101011110100110,
+            0b1101111011101010010000100
+        ]
+
+        # Create a custom dictionary with 15 markers, each of size 5x5
+        custom_dict = cv2.aruco.Dictionary_create(15, 5)
+
+        # Set the marker patterns in the dictionary
+        for i, marker_bin in enumerate(markers_bin):
+            marker_bits = np.array([[(marker_bin >> j) & 1 for j in range(24, -1, -1)]], dtype=np.uint8).reshape((5, 5))
+            custom_dict.bytesList[i] = cv2.aruco.Dictionary_getByteListFromBits(marker_bits)
+
+        return custom_dict
+
+    # default
+    return cv2.aruco.getPredefinedDictionary(dictionary_id)
+
+
+
 class ArucoNode(rclpy.node.Node):
 
     def __init__(self):
@@ -92,7 +129,7 @@ class ArucoNode(rclpy.node.Node):
         self.distortion = None
 
         # setup aruco detector and cv-ros image converter bridge
-        self.aruco_detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(dictionary_id))
+        self.aruco_detector = cv2.aruco.ArucoDetector(get_aruco_dict(dictionary_id))
         self.bridge = CvBridge()
 
         # init logging msg
