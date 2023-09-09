@@ -43,8 +43,10 @@ from ros2_aruco_interfaces.msg import ArucoMarkers
 
 
 def get_aruco_dict(dictionary_id):
+    '''Get an aruco dictionary from a dictionary id.'''
+
     if dictionary_id == "DICT_ALVAR_15":
-        # List of your custom markers as binary numbers
+        # markers 1-15 of https://wiki.ros.org/ar_track_alvar
         markers_bin = [
             0b1101111011101010011011101,
             0b1101111011101011011010110,
@@ -64,16 +66,16 @@ def get_aruco_dict(dictionary_id):
         ]
 
         # Create a custom dictionary with 15 markers, each of size 5x5
-        custom_dict = cv2.aruco.Dictionary_create(15, 5)
+        alvar15_dict = cv2.aruco.Dictionary_create(15, 5)
 
         # Set the marker patterns in the dictionary
         for i, marker_bin in enumerate(markers_bin):
             marker_bits = np.array([[(marker_bin >> j) & 1 for j in range(24, -1, -1)]], dtype=np.uint8).reshape((5, 5))
-            custom_dict.bytesList[i] = cv2.aruco.Dictionary_getByteListFromBits(marker_bits)
+            alvar15_dict.bytesList[i] = cv2.aruco.Dictionary_getByteListFromBits(marker_bits)
 
-        return custom_dict
+        return alvar15_dict
 
-    # default
+    # default -> use predefined dictionary (e.g. DICT_5X5_250)
     return cv2.aruco.getPredefinedDictionary(dictionary_id)
 
 
