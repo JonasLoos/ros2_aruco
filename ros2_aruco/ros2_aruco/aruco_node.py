@@ -14,6 +14,9 @@ Published Topics:
        Provides an array of all poses along with the corresponding
        marker ids.
 
+    /aruco_image (sensor_msgs.msg.Image)
+       Image with detected markers drawn on it.
+
 Parameters:
     marker_size - size of the markers in meters (default .0625)
     aruco_dictionary_id - dictionary that was used to generate markers
@@ -21,10 +24,12 @@ Parameters:
     image_topic - image topic to subscribe to (default /camera/image_raw)
     camera_info_topic - camera info topic to subscribe to
                          (default /camera/camera_info)
+    camera_frame - frame id of the camera (default from camera_info_topic)
+    aruco_parameters - comma separated list of aruco parameters to set (e.g. `maxBorderBits=2`)
 
-Author: Nathan Sprague
-Version: 10/26/2020
-
+Authors:
+Nathan Sprague (until 2020-10-26)
+Jonas Loos (2023)
 """
 
 import rclpy
@@ -53,6 +58,7 @@ class ArucoNode(rclpy.node.Node):
         self.declare_parameter("image_topic", "/camera/image_raw")
         self.declare_parameter("camera_info_topic", "/camera/camera_info")
         self.declare_parameter("camera_frame", None)
+        self.declare_parameter("aruco_parameters", None)
 
         self.marker_size = self.get_parameter("marker_size").get_parameter_value().double_value
         dictionary_id_name = self.get_parameter(
@@ -60,6 +66,7 @@ class ArucoNode(rclpy.node.Node):
         image_topic = self.get_parameter("image_topic").get_parameter_value().string_value
         info_topic = self.get_parameter("camera_info_topic").get_parameter_value().string_value
         self.camera_frame = self.get_parameter("camera_frame").get_parameter_value().string_value
+        aruco_parameters_str = self.get_parameter("aruco_parameters").get_parameter_value().string_value
 
         self.get_logger().info(f'Scanning topics `{image_topic}` and `{info_topic}` for `{dictionary_id_name}` aruco tags with a marker size of `{self.marker_size}`.')
 
@@ -83,7 +90,20 @@ class ArucoNode(rclpy.node.Node):
         self.distortion = None
 
         # setup aruco detector and cv-ros image converter bridge
-        self.aruco_detector = cv2.aruco.ArucoDetector(self.get_aruco_dict(dictionary_id_name))
+        params = cv2.aruco.DetectorParameters()
+        if aruco_parameters_str != "None":
+            # parse aruco parameters
+            for x in aruco_parameters_str.split(','):
+                # separate into key and value
+                assert x.count('=') == 1, f'invalid aruco parameter: {x}'
+                key_str, value_str = x.split('=')
+                key = key_str.strip()
+                # convert value to correct type
+                value_type = type(getattr(params, key))
+                value = value_type(value_str.strip())
+                # set parameter
+                params.__setattr__(key, value)
+        self.aruco_detector = cv2.aruco.ArucoDetector(self.get_aruco_dict(dictionary_id_name), params)
         self.bridge = CvBridge()
 
         # init logging msg
@@ -104,8 +124,7 @@ class ArucoNode(rclpy.node.Node):
     def image_callback(self, img_msg):
 
         if self.info_msg is None:
-            self.get_logger().warn("No camera info has been received!")
-            self.get_logger().info("continuing with default (zero) camera parameters")
+            self.get_logger().warn("No camera info has been received! (Continuing with default params)")
             self.intrinsic_mat = np.array([
                 [640,   0, 320],  # these numbers assume a 640x480 px image
                 [  0, 480, 240],
