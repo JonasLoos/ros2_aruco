@@ -8,6 +8,7 @@ This package depends on a recent version of OpenCV python bindings:
 pip install "opencv-contrib-python>=4.7"
 ```
 
+
 ## ROS2 API for the ros2_aruco Node
 
 This node locates Aruco AR markers in images and publishes their ids and poses.
@@ -31,11 +32,16 @@ Parameters:
 * `image_topic` - image topic to subscribe to (default `/camera/image_raw`)
 * `camera_info_topic` - Camera info topic to subscribe to (default `/camera/camera_info`)
 * `camera_frame` - Camera optical frame to use (default to the frame id provided by the camera info message.)
+* `aruco_parameters` - comma separated list of aruco parameters to set (e.g. `maxBorderBits=2`), see [OpenCV DetectorParameters Documentation](https://docs.opencv.org/4.x/d1/dcd/structcv_1_1aruco_1_1DetectorParameters.html) for more information.
 
-Example:
+Examples:
 ```bash
-ros2 run ros2_aruco aruco_node --ros-args -p image_topic:=/camera/camera -p camera_info_topic:=/camera/camera_info
+ros2 run ros2_aruco aruco_node
 ```
+```bash
+ros2 run ros2_aruco aruco_node --ros-args -p marker_size:=0.15 -p aruco_dictionary_id:=DICT_ALVAR_15 -p image_topic:=/camera/camera -p camera_info_topic:=/camera/camera_info -p aruco_parameters:="markerBorderBits=2"
+```
+
 
 ## Generating Marker Images
 
@@ -58,6 +64,6 @@ optional arguments:
                  DICT_4X4_1000, DICT_4X4_250, DICT_4X4_50, DICT_5X5_100,
                  DICT_5X5_1000, DICT_5X5_250, DICT_5X5_50, DICT_6X6_100,
                  DICT_6X6_1000, DICT_6X6_250, DICT_6X6_50, DICT_7X7_100,
-                 DICT_7X7_1000, DICT_7X7_250, DICT_7X7_50, DICT_ARUCO_ORIGINAL
+                 DICT_7X7_1000, DICT_7X7_250, DICT_7X7_50, DICT_ARUCO_ORIGINAL,
                  (default: DICT_5X5_250)
 ```
