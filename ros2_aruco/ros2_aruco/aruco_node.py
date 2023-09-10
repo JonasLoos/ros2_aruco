@@ -226,7 +226,8 @@ class ArucoNode(rclpy.node.Node):
                 raise AttributeError
         except AttributeError:
             self.get_logger().error("Bad aruco_dictionary_id: {}".format(dictionary_id_name))
-            options = "\n".join(["  " + s for s in dir(cv2.aruco) if s.startswith("DICT")])
+            custom_options = ['DICT_ALVAR_16']
+            options = "\n".join(["    " + s for s in dir(cv2.aruco) + custom_options if s.startswith("DICT")])
             self.get_logger().error("Valid options:\n{}".format(options))
         return cv2.aruco.getPredefinedDictionary(dictionary_id)
 
