@@ -192,12 +192,13 @@ class ArucoNode(rclpy.node.Node):
     def get_aruco_dict(self, dictionary_id_name):
         '''Get an aruco dictionary from a dictionary id.'''
 
-        if dictionary_id_name == "DICT_ALVAR_15":
-            # markers 1-15 of https://wiki.ros.org/ar_track_alvar
-            alvar15_bytelists = [
+        if dictionary_id_name == "DICT_ALVAR_16":
+            # markers 0-15 of https://wiki.ros.org/ar_track_alvar
+            alvar16_bytelists = [
                 cv2.aruco.Dictionary_getByteListFromBits(
                     np.array([(m >> j) & 1 for j in range(24, -1, -1)], dtype=np.uint8).reshape((5,5)))
                 for m in [
+                    0b1101111011101011111111111,
                     0b1101111011101010011011101,
                     0b1101111011101011011010110,
                     0b1101111011101010111110100,
@@ -215,7 +216,7 @@ class ArucoNode(rclpy.node.Node):
                     0b1101111011101010010000100
             ]]
 
-            return cv2.aruco.Dictionary(np.concatenate(alvar15_bytelists), 5, 2)
+            return cv2.aruco.Dictionary(np.concatenate(alvar16_bytelists), 5, 2)
 
         # default -> use predefined dictionary (e.g. DICT_5X5_250)
         # Make sure we have a valid dictionary id

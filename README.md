@@ -39,7 +39,7 @@ Examples:
 ros2 run ros2_aruco aruco_node
 ```
 ```bash
-ros2 run ros2_aruco aruco_node --ros-args -p marker_size:=0.15 -p aruco_dictionary_id:=DICT_ALVAR_15 -p image_topic:=/camera/camera -p camera_info_topic:=/camera/camera_info -p aruco_parameters:="markerBorderBits=2"
+ros2 run ros2_aruco aruco_node --ros-args -p marker_size:=0.15 -p aruco_dictionary_id:=DICT_ALVAR_16 -p image_topic:=/camera/camera -p camera_info_topic:=/camera/camera_info -p aruco_parameters:="markerBorderBits=2"
 ```
 
 
