@@ -42,44 +42,6 @@ from ros2_aruco_interfaces.msg import ArucoMarkers
 
 
 
-def get_aruco_dict(dictionary_id):
-    '''Get an aruco dictionary from a dictionary id.'''
-
-    if dictionary_id == "DICT_ALVAR_15":
-        # markers 1-15 of https://wiki.ros.org/ar_track_alvar
-        markers_bin = [
-            0b1101111011101010011011101,
-            0b1101111011101011011010110,
-            0b1101111011101010111110100,
-            0b1101111011101010111001110,
-            0b1101111011101011011101100,
-            0b1101111011101010011100111,
-            0b1101111011101011111000101,
-            0b1101111011101010010111110,
-            0b1101111011101011110011100,
-            0b1101111011101010110010111,
-            0b1101111011101011010110101,
-            0b1101111011101011010001111,
-            0b1101111011101010110101101,
-            0b1101111011101011110100110,
-            0b1101111011101010010000100
-        ]
-
-        # Create a custom dictionary with 15 markers, each of size 5x5
-        alvar15_dict = cv2.aruco.Dictionary_create(15, 5)
-
-        # Set the marker patterns in the dictionary
-        for i, marker_bin in enumerate(markers_bin):
-            marker_bits = np.array([[(marker_bin >> j) & 1 for j in range(24, -1, -1)]], dtype=np.uint8).reshape((5, 5))
-            alvar15_dict.bytesList[i] = cv2.aruco.Dictionary_getByteListFromBits(marker_bits)
-
-        return alvar15_dict
-
-    # default -> use predefined dictionary (e.g. DICT_5X5_250)
-    return cv2.aruco.getPredefinedDictionary(dictionary_id)
-
-
-
 class ArucoNode(rclpy.node.Node):
 
     def __init__(self):
@@ -99,17 +61,7 @@ class ArucoNode(rclpy.node.Node):
         info_topic = self.get_parameter("camera_info_topic").get_parameter_value().string_value
         self.camera_frame = self.get_parameter("camera_frame").get_parameter_value().string_value
 
-        self.get_logger().info(f'scanning topics `{image_topic}` and `{info_topic}` for `{dictionary_id_name}` aruco tags with a marker size of `{self.marker_size}`')
-
-        # Make sure we have a valid dictionary id:
-        try:
-            dictionary_id = cv2.aruco.__getattribute__(dictionary_id_name)
-            if type(dictionary_id) != type(cv2.aruco.DICT_5X5_100):
-                raise AttributeError
-        except AttributeError:
-            self.get_logger().error("bad aruco_dictionary_id: {}".format(dictionary_id_name))
-            options = "\n".join([s for s in dir(cv2.aruco) if s.startswith("DICT")])
-            self.get_logger().error("valid options: {}".format(options))
+        self.get_logger().info(f'Scanning topics `{image_topic}` and `{info_topic}` for `{dictionary_id_name}` aruco tags with a marker size of `{self.marker_size}`.')
 
         # Set up subscriptions
         self.info_sub = self.create_subscription(CameraInfo,
@@ -131,7 +83,7 @@ class ArucoNode(rclpy.node.Node):
         self.distortion = None
 
         # setup aruco detector and cv-ros image converter bridge
-        self.aruco_detector = cv2.aruco.ArucoDetector(get_aruco_dict(dictionary_id))
+        self.aruco_detector = cv2.aruco.ArucoDetector(self.get_aruco_dict(dictionary_id_name))
         self.bridge = CvBridge()
 
         # init logging msg
@@ -217,6 +169,46 @@ class ArucoNode(rclpy.node.Node):
 
         # publish aruco image
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(aruco_image))
+
+    def get_aruco_dict(self, dictionary_id_name):
+        '''Get an aruco dictionary from a dictionary id.'''
+
+        if dictionary_id_name == "DICT_ALVAR_15":
+            # markers 1-15 of https://wiki.ros.org/ar_track_alvar
+            alvar15_bytelists = [
+                cv2.aruco.Dictionary_getByteListFromBits(
+                    np.array([(m >> j) & 1 for j in range(24, -1, -1)], dtype=np.uint8).reshape((5,5)))
+                for m in [
+                    0b1101111011101010011011101,
+                    0b1101111011101011011010110,
+                    0b1101111011101010111110100,
+                    0b1101111011101010111001110,
+                    0b1101111011101011011101100,
+                    0b1101111011101010011100111,
+                    0b1101111011101011111000101,
+                    0b1101111011101010010111110,
+                    0b1101111011101011110011100,
+                    0b1101111011101010110010111,
+                    0b1101111011101011010110101,
+                    0b1101111011101011010001111,
+                    0b1101111011101010110101101,
+                    0b1101111011101011110100110,
+                    0b1101111011101010010000100
+            ]]
+
+            return cv2.aruco.Dictionary(np.concatenate(alvar15_bytelists), 5, 2)
+
+        # default -> use predefined dictionary (e.g. DICT_5X5_250)
+        # Make sure we have a valid dictionary id
+        try:
+            dictionary_id = cv2.aruco.__getattribute__(dictionary_id_name)
+            if type(dictionary_id) != type(cv2.aruco.DICT_5X5_100):
+                raise AttributeError
+        except AttributeError:
+            self.get_logger().error("Bad aruco_dictionary_id: {}".format(dictionary_id_name))
+            options = "\n".join(["  " + s for s in dir(cv2.aruco) if s.startswith("DICT")])
+            self.get_logger().error("Valid options:\n{}".format(options))
+        return cv2.aruco.getPredefinedDictionary(dictionary_id)
 
 
 def main():
